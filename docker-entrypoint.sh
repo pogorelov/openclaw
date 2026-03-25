@@ -6,18 +6,20 @@ mkdir -p "$STATE_DIR"
 
 CONFIG_FILE="$STATE_DIR/openclaw.json"
 
-# Write base config with Railway-compatible settings if not already present
-if [ ! -f "$CONFIG_FILE" ]; then
-  cat > "$CONFIG_FILE" <<'JSON'
-{
-  "gateway": {
-    "controlUi": {
-      "dangerouslyAllowHostHeaderOriginFallback": true,
-      "dangerouslyDisableDeviceAuth": true
-    }
-  }
-}
-JSON
-fi
+# Merge Railway-required settings into config without overwriting existing values
+node -e "
+const fs = require('fs');
+const path = '$CONFIG_FILE';
+let cfg = {};
+try { cfg = JSON.parse(fs.readFileSync(path, 'utf8')); } catch(e) {}
+cfg.gateway = cfg.gateway || {};
+cfg.gateway.controlUi = cfg.gateway.controlUi || {};
+cfg.gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback = true;
+cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
+cfg.channels = cfg.channels || {};
+cfg.channels.telegram = cfg.channels.telegram || {};
+if (!cfg.channels.telegram.dmPolicy) cfg.channels.telegram.dmPolicy = 'open';
+fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
+"
 
 exec "$@"
