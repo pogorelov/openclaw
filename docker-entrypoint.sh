@@ -12,7 +12,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
 {
   "gateway": {
     "controlUi": {
-      "dangerouslyAllowHostHeaderOriginFallback": true
+      "dangerouslyAllowHostHeaderOriginFallback": true,
+      "dangerouslyDisableDeviceAuth": true
     }
   }
 }
