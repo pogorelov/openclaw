@@ -18,7 +18,8 @@ cfg.gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.channels = cfg.channels || {};
 cfg.channels.telegram = cfg.channels.telegram || {};
-if (!cfg.channels.telegram.dmPolicy) cfg.channels.telegram.dmPolicy = 'open';
+cfg.channels.telegram.dmPolicy = 'allowlist';
+cfg.channels.telegram.allowFrom = cfg.channels.telegram.allowFrom || ['346950312'];
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 "
 
