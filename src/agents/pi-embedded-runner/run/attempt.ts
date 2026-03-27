@@ -2922,6 +2922,14 @@ export async function runEmbeddedAttempt(
 
           // Only pass images option if there are actually images to pass
           // This avoids potential issues with models that don't expect the images parameter
+          log.info("[API] anthropic call", {
+            model: params.modelId,
+            trigger: params.trigger ?? "user",
+            sessionKey: params.sessionKey,
+            historyMessages: activeSession.messages.length,
+            promptChars: effectivePrompt?.length ?? 0,
+            systemPromptChars: systemPromptText?.length ?? 0,
+          });
           if (imageResult.images.length > 0) {
             await abortable(activeSession.prompt(effectivePrompt, { images: imageResult.images }));
           } else {
@@ -3115,6 +3123,17 @@ export async function runEmbeddedAttempt(
               : undefined,
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
+        const _apiUsage = getUsageTotals();
+        log.info("[API] anthropic done", {
+          model: params.modelId,
+          trigger: params.trigger ?? "user",
+          sessionKey: params.sessionKey,
+          durationMs: Date.now() - promptStartedAt,
+          inputTokens: _apiUsage?.input,
+          outputTokens: _apiUsage?.output,
+          cacheReadTokens: _apiUsage?.cacheRead,
+          error: promptError ? String(promptError) : undefined,
+        });
 
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await
