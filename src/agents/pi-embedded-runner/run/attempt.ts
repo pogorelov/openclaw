@@ -116,6 +116,7 @@ import {
 } from "../google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
+import { buildSemanticHistoryAddition } from "../semantic-history.js";
 import { buildEmbeddedMessageActionDiscoveryInput } from "../message-action-discovery-input.js";
 import { buildModelAliasLines } from "../model.js";
 import {
@@ -2471,6 +2472,31 @@ export async function runEmbeddedAttempt(
         cacheTrace?.recordStage("session:limited", { messages: limited });
         if (limited.length > 0) {
           activeSession.agent.replaceMessages(limited);
+        }
+
+        // Enrich context with semantically relevant past messages from indexed sessions.
+        // Runs only when memorySearch is configured with sources: ["sessions"].
+        if (params.prompt !== undefined) {
+          try {
+            const semanticAddition = await buildSemanticHistoryAddition({
+              prompt: params.prompt,
+              sessionKey: params.sessionKey,
+              agentId: params.agentId,
+              config: params.config,
+            });
+            if (semanticAddition) {
+              systemPromptText = prependSystemPromptAddition({
+                systemPrompt: systemPromptText,
+                systemPromptAddition: semanticAddition,
+              });
+              applySystemPromptOverrideToSession(activeSession, systemPromptText);
+              log.debug(
+                `semantic-history: injected ${semanticAddition.length} chars of past context`,
+              );
+            }
+          } catch (semanticErr) {
+            log.debug(`semantic-history: skipped due to error: ${String(semanticErr)}`);
+          }
         }
 
         if (params.contextEngine) {
