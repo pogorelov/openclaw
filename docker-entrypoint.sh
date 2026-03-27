@@ -25,6 +25,8 @@ cfg.agents.defaults = cfg.agents.defaults || {};
 cfg.agents.defaults.model = 'anthropic/claude-sonnet-4-6';
 cfg.agents.defaults.models = cfg.agents.defaults.models || {};
 cfg.agents.defaults.models['anthropic/claude-sonnet-4-6'] = cfg.agents.defaults.models['anthropic/claude-sonnet-4-6'] || {};
+cfg.agents.defaults.heartbeat = cfg.agents.defaults.heartbeat || {};
+cfg.agents.defaults.heartbeat.every = '0';
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 "
 
